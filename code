@@ -1,0 +1,175 @@
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.*;
+import java.util.Scanner;
+class bank {
+	public static void main(String[] args) {
+		try{
+			String url="jdbc:mysql://localhost:3306/bank";
+			String username="root";
+			String password="hk117";
+			Scanner s= new Scanner(System.in);
+
+		
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection con = DriverManager.getConnection(url,username,password);
+			System.out.println("WELCOME");	
+			System.out.println("1. LOGIN");	
+			System.out.println("2. SIGN UP");
+			int op = s.nextInt();	
+
+			if (op == 1){
+				System.out.println("enter your id: ");
+				int user = s.nextInt();
+				System.out.println("enter your password: ");
+				String k = s.next();
+				System.out.println("finding......");
+
+				String check = "select password from customers where id = ?";
+				PreparedStatement ps = con.prepareStatement(check);
+				ps.setInt(1,user);
+
+				ResultSet r = ps.executeQuery();
+
+				if (r.next()) {
+              				String actualPassword = r.getString("password");
+                			if (actualPassword.equals(k)) {
+                				System.out.println("Login successful!");
+						String pr = "select * from customers where id = ?";
+	        				PreparedStatement p = con.prepareStatement(pr);
+						p.setInt(1,user);
+						ResultSet rs = p.executeQuery();
+						while(rs.next()){
+							int id = rs.getInt("id");
+							String name =rs.getString("name");
+							String address =rs.getString("address");
+							String num =rs.getString("phone_number");
+							String email =rs.getString("email");
+							int bal=rs.getInt("balance");
+							System.out.println("********************");
+							System.out.println("ID:" + id );
+							System.out.println("NAME:" + name );
+							System.out.println("ADDRESS:" + address);
+							System.out.println("PHONE NUMBER:" + num );
+							System.out.println("EMAIL:" + email);
+							System.out.println("BALANCE:" + bal);
+							System.out.println("********************");
+						
+						System.out.println("WELCOME");	
+						System.out.println("1. DEPOSIT");	
+						System.out.println("2. WITHDRAW");
+						int act = s.nextInt();
+						if (act==1){		
+							System.out.println("ENTER AMOUNT: ");
+							int amt = s.nextInt();
+							PreparedStatement dep = con.prepareStatement("UPDATE customers SET balance = balance + ? WHERE id = ?");   
+							dep.setInt(1, amt);   
+							dep.setInt(2, user);  
+							int rowsAffected = dep.executeUpdate(); 
+							if (rowsAffected > 0) {
+   								System.out.println("Amount added successfully!");
+								String depo = "select balance from customers where id = ?";
+	        						PreparedStatement pre = con.prepareStatement(depo);
+								pre.setInt(1,user);
+								ResultSet rsu = pre.executeQuery();
+								while(rsu.next()){
+									int bala = rsu.getInt("balance");
+								 	System.out.println("Closing balance:" + bala);
+								}
+							} else {
+    								System.out.println("Failed to add amount. ");
+							}				
+						}else if(act==2){
+							System.out.println("ENTER AMOUNT: ");
+							int amt = s.nextInt();
+							PreparedStatement dep = con.prepareStatement("UPDATE customers SET balance = balance - ? WHERE id = ?");   
+							dep.setInt(1, amt); 
+							dep.setInt(2, user);  
+							int rowsAffected = dep.executeUpdate();  
+							if (rowsAffected > 0) {
+   								System.out.println("Amount withdrawed successfully!");
+								String depo = "select balance from customers where id = ?";
+	        						PreparedStatement pre = con.prepareStatement(depo);
+								pre.setInt(1,user);
+								ResultSet rsu = pre.executeQuery();
+								while(rsu.next()){
+									int bala = rsu.getInt("balance");
+									System.out.println("Closing balance:" + bala);
+								}
+							} else {
+    								System.out.println("Failed to withdraw amount. ");
+							}					
+						}else{
+							System.out.println("wrong choice");
+						}
+						con.close();
+						}
+					}else {
+                				System.out.println("Incorrect password.");
+                			}
+            			} else {
+		            		System.out.println("ID not found in database.");
+            			}
+			}else if (op==2){
+    				System.out.print("Enter your name: ");
+    				s.nextLine(); 
+    				String name = s.nextLine();
+    				System.out.print("Enter your address: ");
+    				String address = s.nextLine();
+	   			System.out.print("Enter your phone number: ");
+    				String phone = s.nextLine();
+	    			System.out.print("Enter your email: ");
+    				String email = s.nextLine();
+	    			System.out.print("Enter your password: ");
+    				String secure = s.next();
+	   			String sql = "INSERT INTO customers (name, address, phone_number, email, password) VALUES (?, ?, ?, ?, ?)";
+    				PreparedStatement ps = con.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+    				ps.setString(1, name);
+    				ps.setString(2, address);
+    				ps.setString(3, phone);
+    				ps.setString(4, email);
+    				ps.setString(5, secure);
+	    			int rows = ps.executeUpdate();
+	    			if (rows > 0) {
+    					ResultSet keys = ps.getGeneratedKeys();
+    					if (keys.next()) {
+        					int newId = keys.getInt(1); 
+        					System.out.println("Sign-up successful! Your ID is: " + newId);
+        					String info = "SELECT * FROM customers WHERE id = ?";
+        					PreparedStatement det = con.prepareStatement(info);
+        					det.setInt(1, newId);
+						ResultSet resul = det.executeQuery();
+						while(resul.next()){
+							int id = resul.getInt("id");
+							String naam =resul.getString("name");
+							String pata =resul.getString("address");
+							String num =resul.getString("phone_number");
+							String mail =resul.getString("email");
+							int bal=resul.getInt("balance");	
+							System.out.println("********************");
+							System.out.println("ID:" + id );
+							System.out.println("NAME:" + naam );
+							System.out.println("ADDRESS:" + pata);
+							System.out.println("PHONE NUMBER:" + num );
+							System.out.println("EMAIL:" + mail);
+							System.out.println("BALANCE:" + bal);
+							System.out.println("********************");
+						}
+    					} else {
+        					System.out.println(" failed to generate id ");
+    					}
+				ps.close();
+				}else{
+					System.out.println("Sign-up failed. Try again.");
+				}	
+			}else{
+				System.out.println("wrong choice"); 
+			}
+			
+		}catch(Exception e){
+			System.out.println(e);
+		}
+	}
+}
